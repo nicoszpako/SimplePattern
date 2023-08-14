@@ -57,9 +57,9 @@ public class SimpleRegex {
                             continue;
                         }
                     }
-                    if((((precedentIsOptional || i.previousIndex() == 1)))){
+                    if(precedentIsOptional || i.previousIndex() == 1){
                         if(i.nextIndex()==tree.children.size()-1){
-                            if(!(precedentIsOptional && parentPrecedentIsOptional))
+                            if(!precedentIsOptional || !parentPrecedentIsOptional)
                                 continue;
                         }
                         tree.children.get(i.previousIndex()-1).add(current);
@@ -89,12 +89,6 @@ public class SimpleRegex {
             }
 
         }
-        /*
-        for (int j = 0; j < tree.children.size(); j++) {
-            tree.children.set(j, compile(tree.children.get(j), parentPrecedentIsOptional));
-            System.out.println(tree.children.get(j)+" is all optional : "+allOptional(tree.children.get(j)));
-        }
-        */
         //System.out.println(tab+"Result : "+convert(tree));
         return tree;
     }
