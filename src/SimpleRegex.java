@@ -7,49 +7,95 @@ public class SimpleRegex {
         return convert(compile(treefy(simplePattern)));
     }
 
-    private static boolean optional(Tree<PatternToken> tree){
+    private static boolean allOptional(Tree<PatternToken> tree){
         if(tree.label == null || tree.label.tokenType == EnumTokenType.PARENTHESIS){
             boolean result = true;
             for (Tree<PatternToken> child : tree.children) {
-                result = result && optional(child);
+                result = result && allOptional(child);
             }
             return result;
         }else {
-            switch(tree.label.tokenType){
-                case SPACE:
-                case CHAR:
-                    return false;
-                case BRACKETS:
-                    return true;
-            }
+            return labelIsOptional(tree.label);
+        }
+    }
+
+    private static boolean labelIsOptional(PatternToken label) {
+        switch(label.tokenType){
+            case PARENTHESIS:
+            case SPACE:
+            case CHAR:
+                return false;
+            case BRACKETS:
+                return true;
         }
         return false;
     }
 
+
     static Tree<PatternToken> compile(Tree<PatternToken> tree) {
+        return compile(tree,true,0);
+    }
+    static Tree<PatternToken> compile(Tree<PatternToken> tree,boolean parentPrecedentIsOptional,int indent) {
+        //String tab = "";
+        //for (int i = 0; i < indent; i++) {
+        //    tab+="\t";
+        //}
+        boolean precedentIsOptional = true;
+        //System.out.println(tab+"Compiling : "+tree);
+        Tree<PatternToken> result = new Tree<PatternToken>();
         ListIterator<Tree<PatternToken>> i = tree.children.listIterator();
         // Looping over all the tree's children
         while (i.hasNext()) {
+
             Tree<PatternToken> current = i.next();
+            //System.out.println(tab+"Current : "+current+" , precedentIsOptional : "+precedentIsOptional+", parentPrecedentIsOptional : "+parentPrecedentIsOptional);
             if (current.label != null && current.label.tokenType == EnumTokenType.SPACE) {
-                if (i.hasNext() && tree.children.get(i.nextIndex()).label.tokenType == EnumTokenType.BRACKETS) {
-                    tree.children.get(i.nextIndex()).add(0, current);
-                    i.remove();
-                }else if (i.hasPrevious() && i.previousIndex() >= 1 && tree.children.get(i.previousIndex()-1).label.tokenType == EnumTokenType.BRACKETS) {
-                    boolean allOptional = true;
-                    for (int j = 0; j < i.previousIndex()-1; j++) {
-                        allOptional = allOptional && optional(tree.children.get(j));
+                if (i.hasPrevious() && i.previousIndex() >= 1 && tree.children.get(i.previousIndex()-1).label.tokenType == EnumTokenType.BRACKETS) {
+                    //If left-adjacent to a char
+                    if(i.previousIndex()-1>=1){
+                        if(tree.children.get(i.previousIndex()-1).label.tokenType == EnumTokenType.CHAR){
+                            continue;
+                        }
                     }
-                    if(allOptional){
+                    if((((precedentIsOptional || i.previousIndex() == 1)))){
+                        if(i.nextIndex()==tree.children.size()-1){
+                            if(!(precedentIsOptional && parentPrecedentIsOptional))
+                                continue;
+                        }
                         tree.children.get(i.previousIndex()-1).add(current);
                         i.remove();
+                        //System.out.println(tab+"Shifted pre : "+convert(tree));
+
+                        continue;
                     }
                 }
+                if (i.hasNext() && tree.children.get(i.nextIndex()).label.tokenType == EnumTokenType.BRACKETS) {
+                    //If right-adjacent to a char
+                    if(tree.children.size() > i.nextIndex()+1){
+                        if(tree.children.get(i.nextIndex()+1).label.tokenType == EnumTokenType.CHAR){
+                            continue;
+                        }
+                    }
+                    tree.children.get(i.nextIndex()).add(0, current);
+                    i.remove();
+                    //System.out.println(tab+"Shifted next : "+convert(tree));
+
+                }
+            }else{
+                if(current.label != null && current.label.tokenType != EnumTokenType.CHAR)
+                    i.set(compile(current,parentPrecedentIsOptional && precedentIsOptional,indent+1));
+                //precedentIsOptional = precedentIsOptional && allOptional(current);
+                precedentIsOptional = precedentIsOptional && allOptional(current);
             }
+
         }
+        /*
         for (int j = 0; j < tree.children.size(); j++) {
-            tree.children.set(j, compile(tree.children.get(j)));
+            tree.children.set(j, compile(tree.children.get(j), parentPrecedentIsOptional));
+            System.out.println(tree.children.get(j)+" is all optional : "+allOptional(tree.children.get(j)));
         }
+        */
+        //System.out.println(tab+"Result : "+convert(tree));
         return tree;
     }
 
