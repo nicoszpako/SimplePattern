@@ -22,9 +22,9 @@ public class SimpleRegex {
     private static boolean labelIsOptional(PatternToken label) {
         switch(label.tokenType){
             case PARENTHESIS:
-            case SPACE:
             case CHAR:
                 return false;
+            case SPACE:
             case BRACKETS:
                 return true;
         }
@@ -32,10 +32,13 @@ public class SimpleRegex {
     }
 
 
-    static Tree<PatternToken> compile(Tree<PatternToken> tree) {
+    static Tree<PatternToken> compile(Tree<PatternToken> tree) throws PatternAllOptionalException {
+        if(allOptional(tree))
+            throw new PatternAllOptionalException();
         return compile(tree,true,0);
     }
     static Tree<PatternToken> compile(Tree<PatternToken> tree,boolean parentPrecedentIsOptional,int indent) {
+
         //String tab = "";
         //for (int i = 0; i < indent; i++) {
         //    tab+="\t";
@@ -78,13 +81,12 @@ public class SimpleRegex {
                     }
                     tree.children.get(i.nextIndex()).add(0, current);
                     i.remove();
-                    //System.out.println(tab+"Shifted next : "+convert(tree));
+                    //System.out.println(tab+"Shifted post : "+convert(tree));
 
                 }
             }else{
                 if(current.label != null && current.label.tokenType != EnumTokenType.CHAR)
                     i.set(compile(current,parentPrecedentIsOptional && precedentIsOptional,indent+1));
-                //precedentIsOptional = precedentIsOptional && allOptional(current);
                 precedentIsOptional = precedentIsOptional && allOptional(current);
             }
 
@@ -184,6 +186,10 @@ public class SimpleRegex {
         else throw new Exception("Bracket or parenthesis error in : " + pattern);
     }
 
+
+    public static class PatternAllOptionalException extends Exception {
+
+    }
 
     public static class Tree<T> {
 
