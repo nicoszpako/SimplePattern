@@ -12,7 +12,6 @@ public class Main {
                 //a b c d,a c d, a d
                 new Test("a [[b] c] d","a[[ b] c] d"),
                 new Test("a [b] [c] d","a[ b][ c] d"),
-                new Test("a [[b] c]","a[[ b] c]"),
                 new Test("[[b] c] a","[[b ]c ]a"),
                 new Test("a [[a b[c]] c]","a[[ a b[c]] c]"),
                 new Test("a (b[c]|d)","a (b[c]|d)"),
@@ -21,6 +20,8 @@ public class Main {
                 new Test("[a] (b|c)","[a ](b|c)"),
                 new Test("[a] [[b] c] d","[a ][[b ]c ]d"),
                 new Test("[a] [[b] c]","error"),
+                new Test("a [[b] c]","a[[ b] c]"),
+                new Test("a [[b] c [d]]","a[[ b] c[ d]]"),
                 //premier espace doit etre post shifté et transformé en espace optionel ?
                 //a,a c,a b c,b c
                 //graphe d'implication de présence ? genre présence de a implique espace avant b, mais pas d'espace si pas de a
@@ -29,7 +30,7 @@ public class Main {
         Test[] tests2 = {
                 //a b c d,a c d, a d
                 new Test("a [[b] c]","a[[ b] c]"),
-        };
+                new Test("a [[b] c [d]]","a[[ b] c[ d]]"),        };
         int fail = 0;
         int succ = 0;
         for (Test test : tests1) {

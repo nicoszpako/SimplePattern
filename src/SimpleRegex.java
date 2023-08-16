@@ -41,7 +41,7 @@ public class SimpleRegex {
 
         //String tab = "";
         //for (int i = 0; i < indent; i++) {
-        //    tab+="\t";
+            //tab+="\t";
         //}
         boolean precedentIsOptional = true;
         //System.out.println(tab+"Compiling : "+tree);
@@ -61,10 +61,8 @@ public class SimpleRegex {
                         }
                     }
                     if(precedentIsOptional || i.previousIndex() == 1){
-                        if(i.nextIndex()==tree.children.size()-1){
-                            if(!precedentIsOptional || !parentPrecedentIsOptional)
-                                continue;
-                        }
+                        if(!precedentIsOptional || !parentPrecedentIsOptional)
+                            continue;
                         tree.children.get(i.previousIndex()-1).add(current);
                         i.remove();
                         //System.out.println(tab+"Shifted pre : "+convert(tree));
